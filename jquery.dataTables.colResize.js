@@ -247,7 +247,7 @@
                 if (isResizable) {
                     $columnNode.on('mousemove.ColResize touchmove.ColResize', function (e) {
                         let $node = $(e.currentTarget);
-                        if (self._fnIsInDragArea($node, e)) {
+                        if (self._fnIsInDragArea($node, e, self.s.opts.resizeHandleArea)) {
                             $node.addClass(self.s.opts.hoverClass);
                         } else {
                             if (!self.s.state.isDragging) {
@@ -263,7 +263,7 @@
                     });
                     $columnNode.on('mousedown.ColResize touchstart.ColResize', function(e) {
                         let $node = $(e.currentTarget);
-                        if (self._fnIsInDragArea($node, e)) {
+                        if (self._fnIsInDragArea($node, e, self.s.opts.resizeHandleArea)) {
                             //disable sorting
                             self._fnGetAllColumns().forEach(function (column) {
                                 column._bSortableTempHolder = column.bSortable;
@@ -315,10 +315,10 @@
                 $node.width($node.width());
             }
         },
-        _fnIsInDragArea: function($th, e) {
+        _fnIsInDragArea: function($th, e, resizeHandleArea) {
             let rightSide = $th.offset().left + $th.outerWidth();
             let xCoord = this._fnGetXCoords(e);
-            return (rightSide + 10) > xCoord && (rightSide - 10) < xCoord;
+            return (rightSide + resizeHandleArea) > xCoord && (rightSide - resizeHandleArea) < xCoord;
         },
         _fnGetXCoords: function(e) {
             return e.type.indexOf('touch') !== -1 ? e.originalEvent.touches[0].pageX : e.pageX;
@@ -512,6 +512,7 @@
     ColResize.defaults = {
         isEnabled: true,
         hoverClass: 'dt-colresizable-hover',
+        resizeHandleArea: 10,
         hasBoundCheck: true,
         minBoundClass: 'dt-colresizable-bound-min',
         maxBoundClass: 'dt-colresizable-bound-max',
