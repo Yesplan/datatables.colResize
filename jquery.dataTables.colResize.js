@@ -334,8 +334,9 @@
 
             //change table size
             let $table = element.closest('table');
-            let shouldChangeTableWidth = element.closest('.dataTables_scroll').length > 0 &&
-                ($table.width() + changedWidth) > element.closest('.dataTables_scroll').width();
+            let shouldChangeTableWidth = element.closest('.dataTables_scroll').length > 0;
+            if (shouldChangeTableWidth && !self.s.opts.totalWidthCanGoSmallerThanScrollBody)
+                shouldChangeTableWidth = shouldChangeTableWidth && ($table.width() + changedWidth) > element.closest('.dataTables_scroll').width();
             if (shouldChangeTableWidth) {
                 $table.width(self.s.state.originalTableWidth + changedWidth);
             }
@@ -539,7 +540,8 @@
             return data != null ? JSON.parse(data) : null;
         },
         getMinWidthOf: null,
-        fixStylePropsAfterResize: true
+        fixStylePropsAfterResize: true,
+        totalWidthCanGoSmallerThanScrollBody: false
     };
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
