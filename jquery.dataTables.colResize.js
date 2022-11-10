@@ -353,7 +353,7 @@
             $footerTable.width($table.width());
 
             // HTML table can force columns to be wider than max-width and smaller than min-width. Overwrite style properties to look the same as the header
-            if (element.closest('.dataTables_scroll').length > 0) {
+            if (self.s.opts.fixStylePropsAfterResize && element.closest('.dataTables_scroll').length > 0) {
                 let additionalStylesForHiddenThRows = ';padding-top: 0px;padding-bottom: 0px;border-top-width: 0px;border-bottom-width: 0px;height: 0px;';
                 this._fnGetAllColumns().forEach(function (column) {
                     let $hbTh = $(column.nTh);
@@ -538,7 +538,8 @@
                 data = localStorage.getItem(stateStorageName);
             return data != null ? JSON.parse(data) : null;
         },
-        getMinWidthOf: null
+        getMinWidthOf: null,
+        fixStylePropsAfterResize: true
     };
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
