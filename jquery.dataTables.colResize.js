@@ -351,7 +351,7 @@
             scrollFooterTh.outerWidth((thWidth)+'px');
             let $footerTable = scrollFooterTh.closest('table');
             $footerTable.width($table.width());
-            
+
             // HTML table can force columns to be wider than max-width and smaller than min-width. Overwrite style properties to look the same as the header
             if (element.closest('.dataTables_scroll').length > 0) {
                 let additionalStylesForHiddenThRows = ';padding-top: 0px;padding-bottom: 0px;border-top-width: 0px;border-bottom-width: 0px;height: 0px;';
@@ -431,7 +431,7 @@
             return parseInt(widthStr.match(/(\d+)px/ig));
         },
         _fnBoundCheck: function (changedWidth, element) {
-            let thWishWidth = (typeof this.s.state.originalWidth[element.index()] != 'undefined' ? this.s.state.originalWidth[element.index] : this._fnGetCurrentWidth(element)) + changedWidth;
+            let thWishWidth = (typeof this.s.state.originalWidth[element.index()] != 'undefined' ? this.s.state.originalWidth[element.index()] : this._fnGetCurrentWidth(element)) + changedWidth;
 
             //min bound
             if (this.s.state.minWidth !== -1 && thWishWidth < this.s.state.minWidth) {
