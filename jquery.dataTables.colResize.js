@@ -477,7 +477,10 @@
             }
         },
         _fnMapColumn: function(column) {
-            return { idx: column.idx, width: column.sWidth };
+             const baseObject = { idx: column.idx, width: column.sWidth };
+            if (this.s.opts.fnSummarizeColumn)
+                return {...baseObject, ...this.s.opts.fnSummarizeColumn(column)}
+            return baseObject;
         },
         _fnIsLastResizableColumnDragging: function(draggingColumn) {
             let visibleColumns = this._fnGetAllColumns().filter(function (column) {
@@ -541,7 +544,8 @@
         },
         getMinWidthOf: null,
         fixStylePropsAfterResize: true,
-        totalWidthCanGoSmallerThanScrollBody: false
+        totalWidthCanGoSmallerThanScrollBody: false,
+        fnSummarizeColumn: false
     };
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
