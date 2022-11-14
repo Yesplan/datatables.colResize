@@ -218,13 +218,17 @@
                 if (self.s.state.isDragging) {
                     // workaround to prevent sorting on column click
                     setTimeout(function () {
-                        //disable sorting
+                        // enable sorting
                         self._fnGetAllColumns().forEach(function (column) {
                             column.bSortable = column._bSortableTempHolder;
                         });
+                        // enable column reordering
+                        if (self.s.dt._colReorder)
+                          self.s.dt._colReorder.fnEnable();
                     }, 100);
+
                     // callback
-                    let mappedColumns = self._fnGetAllColumns().map(self._fnMapColumn);
+                    let mappedColumns = self._fnGetAllColumns().map(self._fnMapColumn.bind(self));
                     self.s.opts.onResizeEnd(self._fnMapColumn(self.s.state.column), mappedColumns);
                     if (self.s.opts.saveState) {
                         self.fnSaveState();
@@ -246,13 +250,17 @@
                 column._sResizableWidth = column.sWidth;
                 if (isResizable) {
                     $columnNode.on('mousemove.ColResize touchmove.ColResize', function (e) {
-                        let $node = $(e.currentTarget);
-                        if (self._fnIsInDragArea($node, e, self.s.opts.resizeHandleArea)) {
+                        const $node = $(event.currentTarget);
+                        if(self._fnIsInDragArea($node, e, self.s.opts.resizeHandleArea)) {
+                            // disable column reordering
+                            if (self.s.dt._colReorder)
+                                self.s.dt._colReorder.fnDisable();
                             $node.addClass(self.s.opts.hoverClass);
-                        } else {
-                            if (!self.s.state.isDragging) {
-                                $node.removeClass(self.s.opts.hoverClass);
-                            }
+                        } else if (!self.s.state.isDragging) {
+                            // enable column reordering
+                            if (self.s.dt._colReorder)
+                                self.s.dt._colReorder.fnEnable();
+                           $node.removeClass(self.s.opts.hoverClass);
                         }
                     });
                     $columnNode.on('mouseout.ColResize', function(e) {
@@ -270,13 +278,12 @@
                                 column.bSortable = false;
                                 self._fnRemovePercentWidths(column, $(column.nTh));
                             });
-
                             self.s.state.isDragging = true;
                             self.s.state.startX = self._fnGetXCoords(e);
                             self.s.state.maxTableWidth = self._fnGetBodyScroll().length > 0 ? 0 : $node.closest('table').width();
                             self.s.state.originalTableWidth = $node.closest('table').width();
                             self.s.state.originalWidth[$node.index()] = self._fnGetCurrentWidth($node);
-                            self.s.state.minWidth = self._fnGetMinWidthOf($node);
+                            self.s.state.minWidth = self._fnGetMinWidthOf(self.s.opts.get$HeaderElementToResize(column, $node));
                             self.s.state.maxWidth = self._fnGetMaxWidthOf($node);
                             self.s.state.minBoundAllowClass = true;
                             self.s.state.maxBoundAllowClass = true;
@@ -284,7 +291,7 @@
                             self.s.state.column = column;
                             self.s.state.isLastColumnDragging = self._fnIsLastResizableColumnDragging(column);
 
-                            self.s.opts.onResizeStart(null, self._fnGetAllColumns().map(self._fnMapColumn));
+                            self.s.opts.onResizeStart(null, self._fnGetAllColumns().map(self._fnMapColumn.bind(self)));
                         }
                     });
                 }
@@ -325,14 +332,13 @@
         },
         _fnApplyWidth: function (changedWidth, element, column) {
             let self = this;
-            //keep inside bounds by manipulating changedWidth if any
+            // keep inside bounds by manipulating changedWidth if any
             changedWidth = this.s.opts.hasBoundCheck ? this._fnBoundCheck(changedWidth, element) : changedWidth;
-
-            //apply widths
+            // apply widths
             let thWidth = this.s.state.originalWidth[element.index()] + changedWidth;
             this._fnApplyWidthColumn(column, thWidth);
 
-            //change table size
+            // change table size
             let $table = element.closest('table');
             let shouldChangeTableWidth = element.closest('.dataTables_scroll').length > 0;
             if (shouldChangeTableWidth && !self.s.opts.totalWidthCanGoSmallerThanScrollBody)
@@ -401,6 +407,7 @@
                 return this.s.opts.getMinWidthOf($node);
             }
             let minWidthFromCss = this._fnGetWidthOfValue($node.css('min-width'));
+
             if(!isNaN(minWidthFromCss) && minWidthFromCss > 0) {
                 return minWidthFromCss;
             }
@@ -422,7 +429,8 @@
             if(!$node.hasClass('sorting_disabled')) {
                 minWidth += 20; //sortable column needs a bit more space for the icon
             }
-            return minWidth < 30 ? 30 : minWidth;
+
+            return minWidth;
         },
         _fnGetMaxWidthOf: function ($node) {
             return this._fnGetWidthOfValue($node.css('max-width'));
@@ -479,7 +487,7 @@
             }
         },
         _fnMapColumn: function(column) {
-             const baseObject = { idx: column.idx, width: column.sWidth };
+            const baseObject = { idx: column.idx, width: column.sWidth };
             if (this.s.opts.fnSummarizeColumn)
                 return {...baseObject, ...this.s.opts.fnSummarizeColumn(column)}
             return baseObject;
@@ -518,7 +526,7 @@
     ColResize.defaults = {
         isEnabled: true,
         hoverClass: 'dt-colresizable-hover',
-        resizeHandleArea: 10,
+        resizeHandleArea: 10, // Added by Yesplan
         hasBoundCheck: true,
         minBoundClass: 'dt-colresizable-bound-min',
         maxBoundClass: 'dt-colresizable-bound-max',
@@ -545,10 +553,11 @@
             return data != null ? JSON.parse(data) : null;
         },
         getMinWidthOf: null,
-        fixStylePropsAfterResize: true,
-        totalWidthCanGoSmallerThanScrollBody: false,
-        fnSummarizeColumn: false,
-        get$HeaderElementToResize: (column, $element) => { return $element || $(column.nTh); },
+        fixStylePropsAfterResize: true, // Added by Yesplan
+        totalWidthCanGoSmallerThanScrollBody: false, // Added by Yesplan
+        fnSummarizeColumn: false, // Added by Yesplan
+        get$HeaderElementToResize: (column, $element) => { return $element || $(column.nTh); }, // Added by Yesplan
+        setWidthOf$Element: ($element, width) => $($element).outerWidth(`${width}px`)
     };
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
