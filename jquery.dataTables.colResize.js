@@ -7,9 +7,32 @@
  * Language:    Javascript
  * License:     MIT
  */
-import jQuery from 'jquery';
+(function (factory) {
+    if (typeof define === 'function' && define.amd) {
+        // AMD
+        define(['jquery', 'datatables.net'], function ($) {
+            return factory($, window, document);
+        });
+    }
+    else if (typeof exports === 'object') {
+        // CommonJS
+        module.exports = function (root, $) {
+            if (!root) {
+                root = window;
+            }
 
-(function ($, window, document) {
+            if (!$ || !$.fn.dataTable) {
+                $ = require('datatables.net')(root, $).$;
+            }
+
+            return factory($, root, root.document);
+        };
+    }
+    else {
+        // Browser
+        factory(jQuery, window, document);
+    }
+}(function ($, window, document) {
     'use strict';
     function settingsFallback(userSetting, fallBackSetting) {
         let resultObject = {};
@@ -503,7 +526,7 @@ import jQuery from 'jquery';
     ColResize.defaults = {
         isEnabled: true,
         hoverClass: 'dt-colresizable-hover',
-        resizeHandleArea: 10,
+        resizeHandleArea: 10, // Added by Yesplan
         hasBoundCheck: true,
         minBoundClass: 'dt-colresizable-bound-min',
         maxBoundClass: 'dt-colresizable-bound-max',
@@ -530,10 +553,10 @@ import jQuery from 'jquery';
             return data != null ? JSON.parse(data) : null;
         },
         getMinWidthOf: null,
-        fixStylePropsAfterResize: true,
-        totalWidthCanGoSmallerThanScrollBody: false,
-        fnSummarizeColumn: false,
-        get$HeaderElementToResize: (column, $element) => { return $element || $(column.nTh); },
+        fixStylePropsAfterResize: true, // Added by Yesplan
+        totalWidthCanGoSmallerThanScrollBody: false, // Added by Yesplan
+        fnSummarizeColumn: false, // Added by Yesplan
+        get$HeaderElementToResize: (column, $element) => { return $element || $(column.nTh); }, // Added by Yesplan
         setWidthOf$Element: ($element, width) => $($element).outerWidth(`${width}px`)
     };
 
@@ -630,4 +653,4 @@ import jQuery from 'jquery';
             ctx._colResize.fnRestoreState();
         });
     });
-})(jQuery, global, global.document);
+}));
