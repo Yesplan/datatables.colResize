@@ -342,14 +342,15 @@
             }
 
             // possible body table
-            let scrollBodyTh = element.closest('.dataTables_scroll').find('.dataTables_scrollBody table th:nth-child(' + (element.index() + 1) + ')');
-            scrollBodyTh.outerWidth((thWidth) + 'px');
+            const idxOfElementToResize = (this.s.opts.get$HeaderElementToResize(column, element)).index();
+            let scrollBodyTh = element.closest('.dataTables_scroll').find('.dataTables_scrollBody table th:nth-child(' + (idxOfElementToResize + 1) + ')').first();
+            this.s.opts.setWidthOf$Element(scrollBodyTh, thWidth);
             let $bodyTable = scrollBodyTh.closest('table');
             $bodyTable.width($table.width());
 
             // possible footer table
-            let scrollFooterTh = element.closest('.dataTables_scroll').find('.dataTables_scrollFoot table th:nth-child(' + (element.index() + 1) + ')');
-            scrollFooterTh.outerWidth((thWidth)+'px');
+            let scrollFooterTh = element.closest('.dataTables_scroll').find('.dataTables_scrollFoot table th:nth-child(' + (idxOfElementToResize + 1) + ')');
+            this.s.opts.setWidthOf$Element(scrollFooterTh, thWidth);
             let $footerTable = scrollFooterTh.closest('table');
             $footerTable.width($table.width());
 
@@ -371,7 +372,8 @@
             }
         },
         _fnApplyWidthColumn: function(column, width) {
-            $(column.nTh).outerWidth(width+'px');
+            const toResize = this.s.opts.get$HeaderElementToResize(column);
+            this.s.opts.setWidthOf$Element(toResize, width);
             column.sWidth = width+'px';
         },
         _fnGetCurrentWidth: function($node) {
@@ -545,7 +547,8 @@
         getMinWidthOf: null,
         fixStylePropsAfterResize: true,
         totalWidthCanGoSmallerThanScrollBody: false,
-        fnSummarizeColumn: false
+        fnSummarizeColumn: false,
+        get$HeaderElementToResize: (column, $element) => { return $element || $(column.nTh); },
     };
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
