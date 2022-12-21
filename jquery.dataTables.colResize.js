@@ -244,55 +244,66 @@
 
             this._fnGetAllColumns().forEach(function(column) {
                 let $columnNode = $(column.nTh);
+                let $columnNodes = [$(column.nTh)];
                 let isResizable = self._fnIsColumnResizable(column);
                 $columnNode.attr('data-is-resizable', isResizable.toString());
+                $columnNodes[0].attr('data-is-resizable', isResizable.toString());
+                const hasParent = self.s.opts.isNestedHeaderColumn(column);
+                let $parentColumnNode = null;
+                if(hasParent && $columnNodes[0].next().length === 0) {
+                    $parentColumnNode = $(self.s.dt.nTableWrapper).find(`th[data-columnname="${column.parentcolumnname}"]`);
+                    $columnNodes.push($parentColumnNode);
+                }
+
                 //save the original value (server) somewhere, we want the size of all of them.
                 column._sResizableWidth = column.sWidth;
                 if (isResizable) {
-                    $columnNode.on('mousemove.ColResize touchmove.ColResize', function (e) {
-                        const $node = $(event.currentTarget);
-                        if(self._fnIsInDragArea($node, e, self.s.opts.resizeHandleArea)) {
-                            // disable column reordering
-                            if (self.s.dt._colReorder)
-                                self.s.dt._colReorder.fnDisable();
-                            $node.addClass(self.s.opts.hoverClass);
-                        } else if (!self.s.state.isDragging) {
-                            // enable column reordering
-                            if (self.s.dt._colReorder)
-                                self.s.dt._colReorder.fnEnable();
-                           $node.removeClass(self.s.opts.hoverClass);
-                        }
-                    });
-                    $columnNode.on('mouseout.ColResize', function(e) {
-                        if (!self.s.state.isDragging) {
-                            let $node = $(e.currentTarget);
-                            $node.removeClass(self.s.opts.hoverClass);
-                        }
-                    });
-                    $columnNode.on('mousedown.ColResize touchstart.ColResize', function(e) {
-                        let $node = $(e.currentTarget);
-                        if (self._fnIsInDragArea($node, e, self.s.opts.resizeHandleArea)) {
-                            //disable sorting
-                            self._fnGetAllColumns().forEach(function (column) {
-                                column._bSortableTempHolder = column.bSortable;
-                                column.bSortable = false;
-                                self._fnRemovePercentWidths(column, $(column.nTh));
-                            });
-                            self.s.state.isDragging = true;
-                            self.s.state.startX = self._fnGetXCoords(e);
-                            self.s.state.maxTableWidth = self._fnGetBodyScroll().length > 0 ? 0 : $node.closest('table').width();
-                            self.s.state.originalTableWidth = $node.closest('table').width();
-                            self.s.state.originalWidth[$node.index()] = self._fnGetCurrentWidth($node);
-                            self.s.state.minWidth = self._fnGetMinWidthOf(self.s.opts.get$HeaderElementToResize(column, $node));
-                            self.s.state.maxWidth = self._fnGetMaxWidthOf($node);
-                            self.s.state.minBoundAllowClass = true;
-                            self.s.state.maxBoundAllowClass = true;
-                            self.s.state.$element = $node;
-                            self.s.state.column = column;
-                            self.s.state.isLastColumnDragging = self._fnIsLastResizableColumnDragging(column);
+                    $columnNodes.forEach(($columnNode) => {
+                        $columnNode.on('mousemove.ColResize touchmove.ColResize', function (e) {
+                            const $node = $(event.currentTarget);
+                            if (self._fnIsInDragArea($node, e, self.s.opts.resizeHandleArea)) {
+                                // disable column reordering
+                                if (self.s.dt._colReorder)
+                                    self.s.dt._colReorder.fnDisable();
+                                $node.addClass(self.s.opts.hoverClass);
+                            } else if (!self.s.state.isDragging) {
+                                // enable column reordering
+                                if (self.s.dt._colReorder)
+                                    self.s.dt._colReorder.fnEnable();
+                                $node.removeClass(self.s.opts.hoverClass);
+                            }
+                        });
+                        $columnNode.on('mouseout.ColResize', function (e) {
+                            if (!self.s.state.isDragging) {
+                                let $node = $(e.currentTarget);
+                                $node.removeClass(self.s.opts.hoverClass);
+                            }
+                        });
+                        $columnNode.on('mousedown.ColResize touchstart.ColResize', function (e) {
+                            let $node = $columnNodes[0];
+                            if (self._fnIsInDragArea($node, e, self.s.opts.resizeHandleArea)) {
+                                //disable sorting
+                                self._fnGetAllColumns().forEach(function (column) {
+                                    column._bSortableTempHolder = column.bSortable;
+                                    column.bSortable = false;
+                                    self._fnRemovePercentWidths(column, $(column.nTh));
+                                });
+                                self.s.state.isDragging = true;
+                                self.s.state.startX = self._fnGetXCoords(e);
+                                self.s.state.maxTableWidth = self._fnGetBodyScroll().length > 0 ? 0 : $node.closest('table').width();
+                                self.s.state.originalTableWidth = $node.closest('table').width();
+                                self.s.state.originalWidth[$node.index()] = self._fnGetCurrentWidth($node);
+                                self.s.state.minWidth = self._fnGetMinWidthOf(self.s.opts.get$HeaderElementToResize(column, $node));
+                                self.s.state.maxWidth = self._fnGetMaxWidthOf($node);
+                                self.s.state.minBoundAllowClass = true;
+                                self.s.state.maxBoundAllowClass = true;
+                                self.s.state.$element = $node;
+                                self.s.state.column = column;
+                                self.s.state.isLastColumnDragging = self._fnIsLastResizableColumnDragging(column);
 
-                            self.s.opts.onResizeStart(null, self._fnGetAllColumns().map(self._fnMapColumn.bind(self)));
-                        }
+                                self.s.opts.onResizeStart(null, self._fnGetAllColumns().map(self._fnMapColumn.bind(self)));
+                            }
+                        });
                     });
                 }
             });
