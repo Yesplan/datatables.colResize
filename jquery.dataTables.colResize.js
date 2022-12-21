@@ -406,7 +406,7 @@
             if(this.s.opts.getMinWidthOf != null) {
                 return this.s.opts.getMinWidthOf($node);
             }
-            let minWidthFromCss = this._fnGetWidthOfValue($node.css('min-width'));
+            let minWidthFromCss = Math.max(this._fnGetWidthOfValue($node.css('min-width')), 10);
 
             if(!isNaN(minWidthFromCss) && minWidthFromCss > 0) {
                 return minWidthFromCss;
